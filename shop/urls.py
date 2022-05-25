@@ -17,7 +17,8 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include
+from django.shortcuts import redirect
+from django.urls import path, include, reverse_lazy
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework.permissions import AllowAny
@@ -40,11 +41,12 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    path('', lambda request: redirect(reverse_lazy('docs'))),
     path('admin/', admin.site.urls),
     path('api/v1/', include(router.urls)),
     path('api/v1/category/', CategoryCreateView.as_view()),
     path('api/v1/account/', include('account.urls')),
     path('api/v1/favorites/', FavoriteView.as_view()),
-    path('api/v1/docs/', schema_view.with_ui('swagger')),
+    path('api/v1/docs/', schema_view.with_ui('swagger'), name='docs'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
