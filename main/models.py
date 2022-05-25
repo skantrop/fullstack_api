@@ -1,15 +1,11 @@
-from itertools import product
 from django.contrib.auth import get_user_model
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from rest_framework.generics import ListAPIView
 
 User = get_user_model()
 
 
 class Category(models.Model):
     title = models.CharField(max_length=70, unique=True)
-    slug = models.SlugField(max_length=70, primary_key=True)
 
     def __str__(self):
         return self.title
@@ -64,7 +60,4 @@ class Favorite(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='favorites')
     favorite = models.BooleanField(default=False)
-
-
-
 

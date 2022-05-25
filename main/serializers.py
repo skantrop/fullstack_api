@@ -1,15 +1,32 @@
+from multiprocessing import context
+import re
 from rest_framework import serializers
-from .models import Product, Review, Favorite
+from .models import Category, Likes, Product, Review, Favorite
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = '__all__'
 
-class ProductListSerializer(serializers.ModelSerializer):
+class ProductListSerializer(serializers.ModelSerializer):    
     class Meta:
         model = Product
         fields = ('id', 'title', 'price', 'image')
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['author'] = instance.author.email
+        representation['category'] = instance.category.title
+        representation['reviews'] = instance.reviews.all().count()
+        representation['likes'] = instance.likes.filter(is_liked=True).count()
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            if Likes.objects.filter(user=request.user, product=instance, is_liked=True).exists():
+                representation['liked_by_user'] = True
+        return representation
 
 class ProductDetailsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,21 +40,15 @@ class ProductDetailsSerializer(serializers.ModelSerializer):
         return attrs
 
     def to_representation(self, instance):
-        rep = super().to_representation(instance)
-        rep['author'] = ReviewAuthorSerializer(instance.author).data
-        return rep
-
-
-    def get_likes(self, instance):
-        total_likes = sum(instance.likes.values_list('is_liked', flat=True))
-        likes = total_likes if total_likes > 0 else 0
-        return likes
-
-    def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['author'] = instance.author.email
+        representation['author'] = ReviewAuthorSerializer(instance.author).data
+        representation['category'] = instance.category.title
         representation['reviews'] = ReviewSerializer(instance.reviews.all(), many=True).data
-        representation['likes'] = self.get_likes(instance)
+        representation['likes'] = instance.likes.filter(is_liked=True).count()
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            if Likes.objects.filter(user=request.user, product=instance, is_liked=True).exists():
+                representation['liked_by_user'] = True
         return representation
 
 
@@ -56,13 +67,7 @@ class ReviewAuthorSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        exclude = ('id', 'author')
-
-    def validate_product(self, product):
-        request = self.context.get('request')
-        if product.reviews.filter(author=request.user).exists():
-            raise serializers.ValidationError('You cannot add second review to this product')
-        return product
+        exclude = ('author',)
 
     def validate(self, attrs):
         request = self.context.get('request')
@@ -77,12 +82,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class FavoriteListSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Favorite
+        model = Product
         fields = '__all__'
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['product'] = ProductDetailsSerializer(Product.objects.filter(favorites=instance.id),
-                                                             many=True, context=self.context).data
-        return representation
 

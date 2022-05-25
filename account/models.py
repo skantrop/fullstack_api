@@ -1,6 +1,5 @@
-from datetime import timedelta, datetime
-
 import jwt
+from datetime import timedelta, datetime
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.core.mail import send_mail
 from django.db import models
@@ -11,7 +10,9 @@ from django.urls import reverse
 
 from django_rest_passwordreset.signals import reset_password_token_created
 from django.core.mail import send_mail
+from decouple import config
 
+DOMAIN = config('DOMAIN')
 
 class UserManager(BaseUserManager):
     def _create(self, email, password, name, last_name, **extra_fields):
@@ -68,20 +69,8 @@ class User(AbstractBaseUser):
             self.activation_code = code
             self.save()
 
-    # def send_activation_mail(self):
-    #     message = f"""
-    #     Здравствуйте! Спасибо за регистрацию на нашем сайте!
-    #     Ваш код активации: {self.activation_code}
-    #     """
-    #     send_mail(
-    #         "Подтверждение аккаунта",
-    #         message,
-    #         "test@gmail.com",
-    #         [self.email]
-    #     )
-
     def send_activation_email(self):
-        activation_url = f'http://localhost:8000api/v1/account/activate/{self.activation_code}/'
+        activation_url = f'{DOMAIN}/api/v1/account/activate/{self.activation_code}/'
         message = f'''
                     Thank you for signing up.
                     Please, activate your account.
@@ -90,11 +79,25 @@ class User(AbstractBaseUser):
         send_mail(
             'Activate your account',
             message,
-            'test@stack_overflow.kg',
+            'test@makers.kg',
             [self.email, ],
             fail_silently=False
         )
-
+    
+    def send_verification_email(self):
+        activation_url = f'{DOMAIN}/api/v1/account/forgot_password_complete/{self.email}/{self.activation_code}/'
+        message = f'''
+                    If you forgot your password, please follow this link:
+                    {activation_url}
+                    Otherwise, ignore this message
+                    '''
+        send_mail(
+            'Forgot password',
+            message,
+            'test@makers.kg',
+            [self.email, ],
+            fail_silently=False
+        )
 
     @property
     def token(self):
