@@ -177,10 +177,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 CORS_ALLOW_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:3001', 
+    'https://www.thunderclient.com',
 ]
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
     'http://localhost:3001', 
+    'https://www.thunderclient.com',
 ]
 
 
