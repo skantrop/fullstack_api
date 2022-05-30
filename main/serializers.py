@@ -31,7 +31,7 @@ class ProductListSerializer(serializers.ModelSerializer):
 class ProductDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = '__all__'
+        exclude = ('author',)
 
     def validate(self, attrs):
         request = self.context.get('request')
