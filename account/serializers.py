@@ -21,6 +21,9 @@ class RegistrationSerializer(serializers.Serializer):
             raise serializers.ValidationError('Пароли не совпадают')
         return attrs
 
+    def create(self, validated_data):
+        return get_user_model().objects.create_user(**validated_data)
+
 class LoginSerializer(TokenObtainPairSerializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(min_length=6, required=True)
