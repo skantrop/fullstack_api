@@ -32,15 +32,3 @@ class LoginSerializer(TokenObtainPairSerializer):
         if not User.objects.filter(email=email).exists():
             raise serializers.ValidationError('Пользователь не найден')
         return email
-
-    def validate(self, attrs):
-        email = attrs.get('email')
-        password = attrs.pop('password')
-        user = User.objects.get(email=email)
-        if not user.check_password(password):
-            raise serializers.ValidationError('Неверный пароль')
-        if user and user.is_active:
-            refresh = self.get_token(user)
-            attrs['refresh'] = str(refresh)
-            attrs['access'] = str(refresh.access_token)
-        return attrs
