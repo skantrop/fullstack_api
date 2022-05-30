@@ -41,7 +41,7 @@ class ProductDetailsSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['author'] = ReviewAuthorSerializer(instance.author).data
+        representation['author'] = instance.author.email
         representation['category'] = instance.category.title
         representation['reviews'] = ReviewSerializer(instance.reviews.all(), many=True).data
         representation['likes'] = instance.likes.filter(is_liked=True).count()
