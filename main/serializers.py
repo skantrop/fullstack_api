@@ -32,7 +32,6 @@ class ProductDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
-        # exclude = ('author', )
 
     def validate(self, attrs):
         request = self.context.get('request')
@@ -47,22 +46,11 @@ class ProductDetailsSerializer(serializers.ModelSerializer):
         representation['likes'] = instance.likes.filter(is_liked=True).count()
         request = self.context.get('request')
         if request and request.user.is_authenticated:
+            if instance.author == request.user:
+                representation['is_author'] = True
             if Likes.objects.filter(user=request.user, product=instance, is_liked=True).exists():
                 representation['liked_by_user'] = True
         return representation
-
-
-class ReviewAuthorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('name', 'last_name')
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if not instance.name and not instance.last_name:
-            representation['full_name'] = 'Anonymous User'
-        return representation
-
 
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
@@ -84,5 +72,4 @@ class FavoriteListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
-
 
