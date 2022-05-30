@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model, password_validation
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -21,34 +21,6 @@ class RegistrationSerializer(serializers.Serializer):
             raise serializers.ValidationError('Пароли не совпадают')
         return attrs
 
-    def save(self):
-        data = self.validated_data
-        user = User.objects.create_user(**data)
-        user.set_activation_code()
-        user.send_activation_email()
-
-
-class ActivationSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
-    activation_code = serializers.CharField(max_length=8,
-                                            min_length=8)
-
-    def validate(self, attrs):
-        email = attrs.get('email')
-        activation_code = attrs.get('activation_code')
-
-        if not User.objects.filter(email=email,
-                                   activation_code=activation_code).exists():
-            raise serializers.ValidationError('Пользователь не найден')
-        return attrs
-
-    def activate(self):
-        email = self.validated_data.get('email')
-        user = User.objects.get(email=email)
-        user.is_active = True
-        user.activation_code = ''
-        user.save()
-
 class LoginSerializer(TokenObtainPairSerializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(min_length=6, required=True)
@@ -69,58 +41,3 @@ class LoginSerializer(TokenObtainPairSerializer):
             attrs['refresh'] = str(refresh)
             attrs['access'] = str(refresh.access_token)
         return attrs
-
-class ForgotPasswordCompleteSerializer(serializers.Serializer):
-    def validate(self, attrs):
-        if not User.objects.filter(email=self.initial_data.get("email"), activation_code=self.initial_data.get("verif_code")).exists():
-            raise serializers.ValidationError('Пользователь не найден или вы уже подтвердили это сообщение')
-        return self.initial_data
-
-    def create_new_password(self):
-        from django.utils.crypto import get_random_string
-        email = self.validated_data.get('email')
-        user = User.objects.get(email=email)
-        random_password = get_random_string(8)
-        user.set_password(random_password)
-        user.save()
-        user.send_new_password(random_password)
-
-class ForgotPasswordSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-
-    def validate_email(self, email):
-        if not User.objects.filter(email=email).exists():
-            raise serializers.ValidationError('Пользователь не найден')
-        return email
-
-    def send_verification_email(self):
-        email = self.validated_data.get('email')
-        user = User.objects.get(email=email)
-        user.set_activation_code()
-        user.send_verification_email()
-
-class ChangePasswordSerializer(serializers.Serializer):
-    old_password = serializers.CharField(max_length=128, write_only=True, required=True)
-    new_password1 = serializers.CharField(max_length=128, write_only=True, required=True)
-    new_password2 = serializers.CharField(max_length=128, write_only=True, required=True)
-
-    def validate_old_password(self, value):
-        user = self.context['request'].user
-        if not user.check_password(value):
-            raise serializers.ValidationError(
-                ('Your old password was entered incorrectly. Please enter it again.')
-            )
-        return value
-
-    def validate(self, data):
-        if data['new_password1'] != data['new_password2']:
-            raise serializers.ValidationError({'new_password2': ("The two password fields didn't match.")})
-        password_validation.validate_password(data['new_password1'], self.context['request'].user)
-        return data
-
-    def save(self, **kwargs):
-        password = self.validated_data['new_password1']
-        user = self.context['request'].user
-        user.set_password(password)
-        user.save()
-        return user
