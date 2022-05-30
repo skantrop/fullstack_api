@@ -5,6 +5,8 @@ from rest_framework.views import APIView
 from rest_framework.generics import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_yasg.utils import swagger_auto_schema
+from django.http import HttpResponse, HttpResponseForbidden
+from rest_framework.decorators import api_view
 
 from account.serializers import RegistrationSerializer, LoginSerializer, ChangePasswordSerializer, \
     ForgotPasswordSerializer, User, ForgotPasswordCompleteSerializer
@@ -51,3 +53,8 @@ class ForgotPasswordCompleteView(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.create_new_password()
             return Response('Вам на почту выслан новый пароль')
+
+@api_view(["GET"])
+def Check(request):
+    if request.user.is_authenticated: return HttpResponse("using token")
+    return HttpResponseForbidden("token invalid or expired")
