@@ -32,9 +32,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         return super().get_serializer_class()
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAdminUser()]
-        elif self.action in ['create_review', 'toggle_like', 'toggle_favorites']:
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'create_review', 'toggle_like', 'toggle_favorites']:
             return [IsAuthenticated()]
         return []
 
