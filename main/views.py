@@ -9,13 +9,14 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from .filters import ProductFilter
-from .models import Product, Review, Likes, Favorite
+from .models import Category, Product, Review, Likes, Favorite
 from .permissions import IsAuthororAdminPermission
 from .serializers import (CategorySerializer, ProductListSerializer,
                           ProductDetailsSerializer, ReviewSerializer, FavoriteListSerializer)
 
 class CategoryListView(ListAPIView):
     serializer_class = CategorySerializer
+    queryset = Category.objects.all()
 
 class CategoryCreateView(CreateAPIView):
     serializer_class = CategorySerializer
