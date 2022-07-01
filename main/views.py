@@ -14,6 +14,8 @@ from .permissions import IsAuthororAdminPermission
 from .serializers import (CategorySerializer, ProductListSerializer,
                           ProductDetailsSerializer, ReviewSerializer, FavoriteListSerializer)
 
+class CategoryListView(ListAPIView):
+    serializer_class = CategorySerializer
 
 class CategoryCreateView(CreateAPIView):
     serializer_class = CategorySerializer
