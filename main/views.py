@@ -9,11 +9,14 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from .filters import ProductFilter
-from .models import Product, Review, Likes, Favorite
+from .models import Category, Product, Review, Likes, Favorite
 from .permissions import IsAuthororAdminPermission
-from .serializers import (CategorySerializer, ProductListSerializer,
-                          ProductDetailsSerializer, ReviewSerializer, FavoriteListSerializer)
+from .serializers import (CategorySerializer, ProductSerializer, 
+                        ReviewSerializer, FavoriteListSerializer)
 
+class CategoryListView(ListAPIView):
+    serializer_class = CategorySerializer
+    queryset = Category.objects.all()
 
 class CategoryCreateView(CreateAPIView):
     serializer_class = CategorySerializer
@@ -21,20 +24,14 @@ class CategoryCreateView(CreateAPIView):
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
-    serializer_class = ProductDetailsSerializer
+    serializer_class = ProductSerializer
     filter_backends = (filters.DjangoFilterBackend, OrderingFilter)
     filterset_class = ProductFilter
     ordering_fields = ['title', 'price']
 
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return ProductListSerializer
-        return super().get_serializer_class()
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAdminUser()]
-        elif self.action in ['create_review', 'toggle_like', 'toggle_favorites']:
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'create_review', 'toggle_like', 'toggle_favorites']:
             return [IsAuthenticated()]
         return []
 
@@ -68,7 +65,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset()
         queryset = queryset.annotate(Count('likes')).filter(likes__count__gte=q)
 
-        serializer = ProductListSerializer(queryset, many=True)
+        serializer = ProductSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get_serializer_context(self):
