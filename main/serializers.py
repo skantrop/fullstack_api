@@ -65,3 +65,8 @@ class FavoriteListSerializer(serializers.ModelSerializer):
         model = Product
         fields = '__all__'
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["author"] = instance.author.email
+        representation["category"] = instance.category.title
+        return representation
