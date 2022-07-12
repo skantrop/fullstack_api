@@ -28,7 +28,7 @@ class ProductSerializer(serializers.ModelSerializer):
         representation['reviews'] = ReviewSerializer(instance.reviews.all(), many=True).data
         representation['likes'] = instance.likes.filter(is_liked=True).count()
         request = self.context.get('request')
-        if request and request.user.is_authenticated:
+        if request:
             representation['is_author'] = instance.author == request.user
             representation['liked_by_user'] = Likes.objects.filter(user=request.user, product=instance, is_liked=True).exists()
             representation['favorite_by_user'] = Product.objects.filter(favorites__user=self.request.user, favorites__favorite=True).exists()
