@@ -99,6 +99,11 @@ WSGI_APPLICATION = 'shop.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': config('DB_ENGINE'),
+        # 'NAME': config('DB_NAME'),
+        # 'USER': 'nastya',
+        # 'PASSWORD': '1',
+        # 'HOST':'127.0.0.1',
+        # 'PORT':5432
     }
 }
 import dj_database_url

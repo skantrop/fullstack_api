@@ -1,9 +1,11 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from django.http import HttpResponse, HttpResponseForbidden
 from rest_framework.decorators import api_view
 
+from .models import User
 from account.serializers import RegistrationSerializer
 
 class RegistrationView(APIView):
@@ -22,3 +24,13 @@ class RegistrationView(APIView):
 def Check(request):
     if request.user.is_authenticated: return HttpResponse("using token")
     return HttpResponseForbidden("token invalid or expired")
+
+@api_view(["DELETE"])
+def DeleteUserView(request):
+    user = request.user
+    if not user.is_authenticated:
+        return HttpResponseForbidden("token invalid or expired")
+    if user.is_staff:
+        return HttpResponseForbidden("User is superuser")
+    user.delete()
+    return Response("User successfully deleted", 204)
