@@ -8,5 +8,3 @@ Pillow
 psycopg2-binary
 python-decouple
 gunicorn
-whitenoise
-dj-database-url
