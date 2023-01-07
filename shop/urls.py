@@ -32,9 +32,9 @@ router.register('reviews', ReviewViewSet)
 
 schema_view = get_schema_view(
     openapi.Info(
-        title='My API',
+        title='Shop API',
         default_version='v1',
-        description='My ecommerce API'
+        description='Makers coding bootcamp'
     ),
     public=True,
     permission_classes=[AllowAny],
