@@ -6,7 +6,7 @@ from django.http import HttpResponse, HttpResponseForbidden
 from rest_framework.decorators import api_view
 
 from .models import User
-from account.serializers import RegistrationSerializer
+from account.serializers import RegistrationSerializer, ProfileSerializer
 
 class RegistrationView(APIView):
     @swagger_auto_schema(request_body=RegistrationSerializer())
@@ -34,3 +34,11 @@ def DeleteUserView(request):
         return HttpResponseForbidden("User is superuser")
     user.delete()
     return Response("User successfully deleted", 204)
+
+@api_view(["GET"])
+def profile_api_view(request):
+    user = request.user
+    if not user.is_authenticated:
+        return HttpResponseForbidden("token invalid or expired")
+    ser = ProfileSerializer(user)
+    return Response(ser.data)

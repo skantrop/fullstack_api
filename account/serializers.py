@@ -23,3 +23,8 @@ class RegistrationSerializer(serializers.Serializer):
     def save(self):
         data = self.validated_data
         User.objects.create_user(**data)
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'email',)
